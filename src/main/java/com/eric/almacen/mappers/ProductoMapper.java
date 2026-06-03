@@ -4,7 +4,9 @@ import com.eric.almacen.dto.productos.ProductoRequest;
 import com.eric.almacen.dto.productos.ProductoResponse;
 import com.eric.almacen.entities.Producto;
 import com.eric.almacen.enums.Categoria;
+import org.springframework.stereotype.Component;
 
+@Component
 public class ProductoMapper {
     public Producto requestAEntidad(ProductoRequest request, Categoria categoria) {
         if (request == null) return null;

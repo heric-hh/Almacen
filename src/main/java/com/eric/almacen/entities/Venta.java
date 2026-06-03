@@ -4,6 +4,7 @@ import com.eric.almacen.enums.EstadoVenta;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
@@ -34,17 +35,25 @@ public class Venta {
     @OneToMany(mappedBy = "venta", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
     private List<DetalleVenta> detalleVenta  = new ArrayList<>();
 
-    public void agregarDetalle(DetalleVenta detalleVenta) {
+    public void agregarDetalleVenta(DetalleVenta detalleVenta) {
         if (detalleVenta == null) {
             throw new IllegalArgumentException("El detalle es requerido");
         }
+        // Actualiza la lista de detalles de venta de la entidad Ventas
         this.detalleVenta.add(detalleVenta);
-        detalleVenta.setVenta(this); // detalleVenta.setVenta(this)
+        // Actualiza la propiedad VENTA de la entidad DetalleVenta
+        detalleVenta.setVenta(this);
     }
 
-    public void cancelar() {
+    public void cancelarVenta() {
         if (this.estadoVenta == EstadoVenta.CANCELADA)
             throw new IllegalArgumentException("La venta ya esta cancelada");
         this.estadoVenta = EstadoVenta.CANCELADA;
+    }
+
+    public BigDecimal getTotal() {
+        return detalleVenta.stream()
+                .map(detalle -> detalle.getPrecioProducto().multiply(BigDecimal.valueOf(detalle.getCantidadProducto())))
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
     }
 }

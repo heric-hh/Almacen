@@ -15,7 +15,7 @@ import java.math.BigDecimal;
 import java.util.List;
 
 @RestController
-@RequestMapping("/productos")
+@RequestMapping("/api/productos")
 @AllArgsConstructor
 @Validated
 public class ProductoController {
@@ -34,7 +34,8 @@ public class ProductoController {
 
     @GetMapping("/{id}")
     public ResponseEntity<ProductoResponse> obtenerPorId(
-            @PathVariable @Positive(message = "EL ID DEBE SER POSITIVO") Long id) {
+            @PathVariable @Positive(message = "EL ID DEBE SER POSITIVO") Long id
+    ) {
         return ResponseEntity.ok(productoService.obtenerPorId(id));
     }
 
@@ -47,7 +48,8 @@ public class ProductoController {
     @PutMapping("/{id}")
     public ResponseEntity<ProductoResponse> actualizar(
             @PathVariable @Positive(message = "EL ID DEBE SER POSITIVO") Long id,
-            @Valid @RequestBody ProductoRequest request) {
+            @Valid @RequestBody ProductoRequest request
+    ) {
         return ResponseEntity.ok(productoService.actualizar(request, id));
     }
 

@@ -92,6 +92,4 @@ public class SucursalServiceImpl implements SucursalService {
         if (repository.existsByNombreIgnoreCaseAndIdNot(request.nombre().trim(), id))
             throw new IllegalArgumentException("Ya existe una sucursal con el nombre de : " + request.nombre());
     }
-
-
 }
