@@ -3,10 +3,16 @@ package com.eric.almacen.services;
 import com.eric.almacen.dto.productos.ProductoRequest;
 import com.eric.almacen.dto.productos.ProductoResponse;
 
+import java.math.BigDecimal;
 import java.util.List;
 
 public interface ProductoService {
-    List<ProductoResponse> listar();
+    List<ProductoResponse> listar(
+            String nombre,
+            String categoria,
+            BigDecimal precioMin,
+            BigDecimal precioMax
+    );
 
     ProductoResponse obtenerPorId(Long id);
 
