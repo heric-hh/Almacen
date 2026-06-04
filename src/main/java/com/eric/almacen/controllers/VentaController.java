@@ -33,6 +33,11 @@ public class VentaController {
         return ResponseEntity.ok(ventaService.obtenerPorId(id));
     }
 
+    @GetMapping("/canceladas")
+    public ResponseEntity<List<VentaResponse>> listarVentasCanceladas() {
+        return ResponseEntity.ok(ventaService.listarCanceladas());
+    }
+
     @PostMapping
     public ResponseEntity<VentaResponse> registrar(
             @Valid

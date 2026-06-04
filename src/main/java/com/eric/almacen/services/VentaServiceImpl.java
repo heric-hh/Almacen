@@ -62,6 +62,18 @@ public class VentaServiceImpl implements VentaService {
     }
 
     @Override
+    @Transactional(readOnly = true)
+    public List<VentaResponse> listarCanceladas() {
+        log.info("Listado ventas con estatus cancelada");
+
+        return ventaRepository.findAll()
+                .stream()
+                .filter(venta -> venta.getEstadoVenta() == EstadoVenta.CANCELADA)
+                .map(ventaMapper::entidadAResponse)
+                .toList();
+    }
+
+    @Override
     public VentaResponse registrar(VentaRequest request) {
         log.info("Registrando una nueva venta...");
 
@@ -84,18 +96,6 @@ public class VentaServiceImpl implements VentaService {
 
         venta.cancelarVenta();
         devolverCantidadesAStock(venta.getDetalleVenta());
-    }
-
-    @Override
-    @Transactional(readOnly = true)
-    public List<VentaResponse> listarCanceladas() {
-        log.info("Listado ventas con estatus cancelada");
-
-        return ventaRepository.findAll()
-                .stream()
-                .filter(venta -> venta.getEstadoVenta() == EstadoVenta.CANCELADA)
-                .map(ventaMapper::entidadAResponse)
-                .toList();
     }
 
     private Venta obtenerVentaOException(Long id) {
