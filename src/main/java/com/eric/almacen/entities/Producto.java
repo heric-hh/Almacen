@@ -34,6 +34,7 @@ public class Producto {
     private Integer cantidad;
 
     public void actualizar(String nombre, Categoria categoria, BigDecimal precio, Integer cantidad) {
+        validarDatos(nombre, categoria, precio, cantidad);
         this.nombre = nombre.trim();
         this.categoria = categoria;
         this.precio = precio;

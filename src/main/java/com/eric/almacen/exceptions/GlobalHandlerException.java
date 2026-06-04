@@ -2,7 +2,8 @@ package com.eric.almacen.exceptions;
 
 import com.eric.almacen.dto.CustomErrorResponse;
 import lombok.extern.slf4j.Slf4j;
-import org.hibernate.exception.ConstraintViolationException;
+import jakarta.validation.ConstraintViolationException;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.MethodArgumentNotValidException;
@@ -26,9 +27,13 @@ public class GlobalHandlerException {
 
     @ExceptionHandler(ConstraintViolationException.class)
     public ResponseEntity<CustomErrorResponse> handleConstraintViolationException(ConstraintViolationException e) {
-        log.error("Violación de restricción: {}", e.getMessage());
+        String mensaje = e.getConstraintViolations().stream()
+                .map(violation -> violation.getMessage())
+                .findFirst()
+                .orElse(e.getMessage());
+        log.error("Error de validación de parámetros: {}", mensaje);
         return ResponseEntity.badRequest()
-                .body(new CustomErrorResponse(HttpStatus.BAD_REQUEST.value(), "Violación de restricción: " + e.getMessage()));
+                .body(new CustomErrorResponse(HttpStatus.BAD_REQUEST.value(), mensaje));
     }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
@@ -69,6 +74,14 @@ public class GlobalHandlerException {
         log.warn("No se encontró el recurso: {}", e.getMessage());
         return ResponseEntity.status(HttpStatus.NOT_FOUND)
                 .body(new CustomErrorResponse(HttpStatus.NOT_FOUND.value(), e.getMessage()));
+    }
+
+    @ExceptionHandler(DataIntegrityViolationException.class)
+    public ResponseEntity<CustomErrorResponse> handleDataIntegrityViolationException(DataIntegrityViolationException e) {
+        log.error("Error de integridad de datos: {}", e.getMessage());
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(
+                new CustomErrorResponse(HttpStatus.CONFLICT.value(), "No se puede eliminar el registro porque tiene dependencias activas en el sistema.")
+        );
     }
 
     @ExceptionHandler(Exception.class)
