@@ -3,9 +3,11 @@ package com.eric.almacen.services;
 import com.eric.almacen.dto.sucursales.SucursalRequest;
 import com.eric.almacen.dto.sucursales.SucursalResponse;
 import com.eric.almacen.entities.Sucursal;
+import com.eric.almacen.enums.EstadoVenta;
 import com.eric.almacen.exceptions.RecursoNoEncontradoException;
 import com.eric.almacen.mappers.SucursalMapper;
 import com.eric.almacen.repositories.SucursalRepository;
+import com.eric.almacen.repositories.VentaRepository;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -18,14 +20,15 @@ import java.util.List;
 @Transactional
 @Slf4j
 public class SucursalServiceImpl implements SucursalService {
-    private final SucursalRepository repository;
+    private final SucursalRepository sucursalRepository;
+    private final VentaRepository ventaRepository;
     private final SucursalMapper mapper;
 
     @Override
     @Transactional(readOnly = true)
     public List<SucursalResponse> listar() {
         log.info("Listando todas las sucursales");
-        return repository
+        return sucursalRepository
                 .findAll()
                 .stream()
                 .map(mapper::entidadAResponse)
@@ -43,7 +46,7 @@ public class SucursalServiceImpl implements SucursalService {
         log.info("Registrando nueva sucursal");
         validarDatosUnicos(request);
         Sucursal sucursal = mapper.requestAEntidad(request);
-        repository.save(sucursal);
+        sucursalRepository.save(sucursal);
         return mapper.entidadAResponse(sucursal);
     }
 
@@ -58,7 +61,7 @@ public class SucursalServiceImpl implements SucursalService {
 
         log.info("Sucursal con id {} actualizada correctamente", id);
 
-        // repository.save(sucursal) JPA detecta cambios en la entidad y guarda automaticamente
+        // sucursalRepository.save(sucursal) JPA detecta cambios en la entidad y guarda automaticamente
         return mapper.entidadAResponse(sucursal);
     }
 
@@ -67,29 +70,34 @@ public class SucursalServiceImpl implements SucursalService {
         Sucursal sucursal = obtenerSucursalOException(id);
 
         log.info("Eliminando sucursal con id: {}", id);
-
-        repository.delete(sucursal);
-
+        validarVentasExistentesEnSucursal(id);
+        sucursalRepository.delete(sucursal);
         log.info("Sucursal con id {} eliminada", id);
     }
 
     private Sucursal obtenerSucursalOException(Long id) {
         log.info("Buscando sucursal con id: {}", id);
 
-        return repository
+        return sucursalRepository
                 .findById(id)
                 .orElseThrow(() -> new RecursoNoEncontradoException("Sucursal no encontrada con id: " + id));
     }
 
     private void validarDatosUnicos(SucursalRequest request) {
         log.info("Validando nombre unico...");
-        if (repository.existsByNombreIgnoreCase(request.nombre().trim()))
+        if (sucursalRepository.existsByNombreIgnoreCase(request.nombre().trim()))
             throw new IllegalArgumentException("Ya existe una sucursal con el nombre de : " + request.nombre());
     }
 
     private void validarCambiosUnicos(SucursalRequest request, Long id) {
         log.info("Validando cambio en nombre unico...");
-        if (repository.existsByNombreIgnoreCaseAndIdNot(request.nombre().trim(), id))
+        if (sucursalRepository.existsByNombreIgnoreCaseAndIdNot(request.nombre().trim(), id))
             throw new IllegalArgumentException("Ya existe una sucursal con el nombre de : " + request.nombre());
+    }
+
+    private void validarVentasExistentesEnSucursal(Long id) {
+        if (ventaRepository.existsBySucursalIdAndEstadoVenta(id, EstadoVenta.REGISTRADA)) {
+            throw new IllegalStateException("No se puede eliminar la sucursal porque tiene ventas registradas activas");
+        }
     }
 }

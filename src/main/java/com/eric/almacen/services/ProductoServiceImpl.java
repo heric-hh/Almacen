@@ -4,9 +4,11 @@ import com.eric.almacen.dto.productos.ProductoRequest;
 import com.eric.almacen.dto.productos.ProductoResponse;
 import com.eric.almacen.entities.Producto;
 import com.eric.almacen.enums.Categoria;
+import com.eric.almacen.enums.EstadoVenta;
 import com.eric.almacen.exceptions.RecursoNoEncontradoException;
 import com.eric.almacen.mappers.ProductoMapper;
 import com.eric.almacen.repositories.ProductoRepository;
+import com.eric.almacen.repositories.VentaRepository;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -21,6 +23,7 @@ import java.util.List;
 @Slf4j
 public class ProductoServiceImpl implements ProductoService {
     private final ProductoRepository repository;
+    private final VentaRepository ventaRepository;
     private final ProductoMapper mapper;
 
     @Override
@@ -75,6 +78,7 @@ public class ProductoServiceImpl implements ProductoService {
     public void eliminar(Long id) {
         Producto producto = obtenerProductoOException(id);
         log.info("Eliminando producto con id: {}", id);
+        validarProductoConVentasRegistradas(id);
         repository.delete(producto);
         log.info("Producto con id {} eliminado", id);
     }
@@ -84,6 +88,12 @@ public class ProductoServiceImpl implements ProductoService {
         return repository
                 .findById(id)
                 .orElseThrow(() -> new RecursoNoEncontradoException("Producto no encontrado con id: " + id));
+    }
+
+    private void validarProductoConVentasRegistradas(Long id) {
+        if (ventaRepository.existsByDetalleVentaProductoIdAndEstadoVenta(id, EstadoVenta.REGISTRADA)) {
+            throw new IllegalStateException("No se puede eliminar un producto con una venta activa");
+        }
     }
 
 

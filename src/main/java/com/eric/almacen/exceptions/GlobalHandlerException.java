@@ -3,6 +3,7 @@ package com.eric.almacen.exceptions;
 import com.eric.almacen.dto.CustomErrorResponse;
 import lombok.extern.slf4j.Slf4j;
 import jakarta.validation.ConstraintViolationException;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.MethodArgumentNotValidException;
@@ -73,6 +74,14 @@ public class GlobalHandlerException {
         log.warn("No se encontró el recurso: {}", e.getMessage());
         return ResponseEntity.status(HttpStatus.NOT_FOUND)
                 .body(new CustomErrorResponse(HttpStatus.NOT_FOUND.value(), e.getMessage()));
+    }
+
+    @ExceptionHandler(DataIntegrityViolationException.class)
+    public ResponseEntity<CustomErrorResponse> handleDataIntegrityViolationException(DataIntegrityViolationException e) {
+        log.error("Error de integridad de datos: {}", e.getMessage());
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(
+                new CustomErrorResponse(HttpStatus.CONFLICT.value(), "No se puede eliminar el registro porque tiene dependencias activas en el sistema.")
+        );
     }
 
     @ExceptionHandler(Exception.class)
