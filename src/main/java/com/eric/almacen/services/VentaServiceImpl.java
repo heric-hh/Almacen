@@ -52,7 +52,6 @@ public class VentaServiceImpl implements VentaService {
         return ventaMapper.entidadAResponse(obtenerVentaOException(id));
     }
 
-    // TODO: Validar que el producto exista y tenga stock. Al registrar descontar del stock la cantidad de producto vendido
     @Override
     public VentaResponse registrar(VentaRequest request) {
         log.info("Registrando una nueva venta...");
@@ -71,10 +70,18 @@ public class VentaServiceImpl implements VentaService {
     // TODO: Al cancelar la venta, regresar al stock la cantidad de producto vendido. Usar verbo DELETE en controller
     @Override
     public void cancelar(Long id) {
+        log.info("Cancelando venta con id {}", id);
 
+        Venta venta = obtenerVentaOException(id);
+
+        venta.cancelarVenta();
+        devolverCantidadesAStock(venta.getDetalleVenta());
     }
 
     // TODO: Listar ventas con estatus CANCELADA
+    public void listarVentasCanceladas() {
+
+    }
 
     private Venta obtenerVentaOException(Long id) {
         log.info("Buscando venta con id {} ", id);
@@ -104,11 +111,17 @@ public class VentaServiceImpl implements VentaService {
         items.forEach(item -> {
             Producto producto = obtenerProductoOException(item.idProducto());
 
-            // Si la cantidad no es suficiente, mostrar excepcion
+            // Si la cantidad no es suficiente, mostrara excepcion
             producto.descontarCantidad(item.cantidadProducto());
 
             DetalleVenta detalle = detalleVentaMapper.requestAEntidad(item, producto);
             venta.agregarDetalleVenta(detalle);
+        });
+    }
+
+    private void devolverCantidadesAStock(List<DetalleVenta> detalles) {
+        detalles.forEach(detalleVenta -> {
+            detalleVenta.getProducto().aumentarCantidad(detalleVenta.getCantidadProducto());
         });
     }
 }

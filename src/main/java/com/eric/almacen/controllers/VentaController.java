@@ -4,6 +4,7 @@ import com.eric.almacen.dto.ventas.VentaRequest;
 import com.eric.almacen.dto.ventas.VentaResponse;
 import com.eric.almacen.services.VentaService;
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.Positive;
 import lombok.AllArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -30,5 +31,13 @@ public class VentaController {
             @RequestBody VentaRequest request
     ) {
         return ResponseEntity.status(HttpStatus.CREATED).body(ventaService.registrar(request));
+    }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> cancelar(
+            @PathVariable @Positive(message = "El id debe ser positivo") Long id
+    ) {
+        ventaService.cancelar(id);
+        return ResponseEntity.noContent().build();
     }
 }
