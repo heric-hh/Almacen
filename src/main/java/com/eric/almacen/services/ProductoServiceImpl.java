@@ -38,6 +38,12 @@ public class ProductoServiceImpl implements ProductoService {
         return repository
                 .findAll()
                 .stream()
+                .filter(p -> nombre == null || nombre.isBlank() ||
+                        p.getNombre().toLowerCase().contains(nombre.toLowerCase().trim()))
+                .filter(p -> categoria == null || categoria.isBlank() ||
+                        p.getCategoria().getDescripcion().equalsIgnoreCase(categoria.trim()))
+                .filter(p -> precioMin == null || p.getPrecio().compareTo(precioMin) >= 0)
+                .filter(p -> precioMax == null || p.getPrecio().compareTo(precioMax) <= 0)
                 .map(mapper::entidadAResponse)
                 .toList();
     }
