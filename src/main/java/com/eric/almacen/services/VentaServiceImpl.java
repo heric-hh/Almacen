@@ -7,6 +7,7 @@ import com.eric.almacen.entities.DetalleVenta;
 import com.eric.almacen.entities.Producto;
 import com.eric.almacen.entities.Sucursal;
 import com.eric.almacen.entities.Venta;
+import com.eric.almacen.enums.EstadoVenta;
 import com.eric.almacen.exceptions.RecursoNoEncontradoException;
 import com.eric.almacen.mappers.DetalleVentaMapper;
 import com.eric.almacen.mappers.VentaMapper;
@@ -33,7 +34,7 @@ public class VentaServiceImpl implements VentaService {
     private final VentaMapper ventaMapper;
     private final DetalleVentaMapper detalleVentaMapper;
 
-    // TODO: Listar ventas unicamente con estatus de REGISTRADO
+    // Listar ventas unicamente con estatus de REGISTRADO
     @Override
     @Transactional(readOnly = true)
     public List<VentaResponse> listar() {
@@ -42,14 +43,22 @@ public class VentaServiceImpl implements VentaService {
         return ventaRepository
                 .findAll()
                 .stream()
+                .filter(venta -> venta.getEstadoVenta() == EstadoVenta.REGISTRADA)
                 .map(ventaMapper::entidadAResponse)
                 .toList();
     }
 
-    // TODO: Debe obtener solo las ventas con estatus REGISTRADA
+    // Solo las ventas con estatus REGISTRADA
     @Override
+    @Transactional(readOnly = true)
     public VentaResponse obtenerPorId(Long id) {
-        return ventaMapper.entidadAResponse(obtenerVentaOException(id));
+        Venta venta = obtenerVentaOException(id);
+
+        if (venta.getEstadoVenta() != EstadoVenta.REGISTRADA) {
+            throw new RecursoNoEncontradoException("La venta con id " + " no se encuentra registrada");
+        }
+
+        return ventaMapper.entidadAResponse(venta);
     }
 
     @Override
@@ -67,7 +76,6 @@ public class VentaServiceImpl implements VentaService {
         return ventaMapper.entidadAResponse(ventaGuardada);
     }
 
-    // TODO: Al cancelar la venta, regresar al stock la cantidad de producto vendido. Usar verbo DELETE en controller
     @Override
     public void cancelar(Long id) {
         log.info("Cancelando venta con id {}", id);
@@ -78,9 +86,16 @@ public class VentaServiceImpl implements VentaService {
         devolverCantidadesAStock(venta.getDetalleVenta());
     }
 
-    // TODO: Listar ventas con estatus CANCELADA
-    public void listarVentasCanceladas() {
+    @Override
+    @Transactional(readOnly = true)
+    public List<VentaResponse> listarCanceladas() {
+        log.info("Listado ventas con estatus cancelada");
 
+        return ventaRepository.findAll()
+                .stream()
+                .filter(venta -> venta.getEstadoVenta() == EstadoVenta.CANCELADA)
+                .map(ventaMapper::entidadAResponse)
+                .toList();
     }
 
     private Venta obtenerVentaOException(Long id) {

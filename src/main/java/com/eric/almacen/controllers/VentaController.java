@@ -25,6 +25,14 @@ public class VentaController {
         return ResponseEntity.ok(ventaService.listar());
     }
 
+    @GetMapping("/{id}")
+    public ResponseEntity<VentaResponse> obtenerPorId(
+            @Positive(message = "El id debe ser positivo")
+            @PathVariable Long id
+    ) {
+        return ResponseEntity.ok(ventaService.obtenerPorId(id));
+    }
+
     @PostMapping
     public ResponseEntity<VentaResponse> registrar(
             @Valid
