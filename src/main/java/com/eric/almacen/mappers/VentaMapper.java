@@ -21,10 +21,9 @@ public class VentaMapper {
 
     public Venta requestAEntidad(VentaRequest request, Sucursal sucursal) {
         if (request == null) return null;
-
         return Venta.builder()
                 .fecha(LocalDate.now())
-                .estadoVenta(EstadoVenta.REGISTRADA) // A falta de un estado inicial por defecto
+                .estadoVenta(EstadoVenta.REGISTRADA)
                 .sucursal(sucursal)
                 .detalleVenta(new ArrayList<>())
                 .build();
